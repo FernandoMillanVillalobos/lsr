@@ -447,8 +447,74 @@ cor(effort$hours, effort$grade, method = "spearman")
 # # load data
 load("~/lsr/lsr/analysis/input/work.Rdata")
 
-correlate(work)
-correlate(work, corr.method = "spearman")
+lsr::correlate(work)
+lsr::correlate(work, corr.method = "spearman")
+
+# look at the data
+head(body_well)
+dplyr::glimpse(body_well)
+
+plot(x = body_well$bodysat, y = body_well$wellbeing)
+
+ggplot(body_well, aes(x = bodysat, y = wellbeing)) +
+  geom_point(shape = 21, fill = "deepskyblue4", stroke = .5, size = 3, alpha = .7) +
+  geom_smooth(method = "lm", se = FALSE) +
+  theme_cowplot()
+
+# calculating Pearson's correlation coefficient
+cor(body_well$bodysat, body_well$wellbeing, method = "spearman")
+lsr::correlate(x = body_well$bodysat, y = body_well$wellbeing, corr.method = "spearman")
+
+
+# eyeballing r correlation coefficient
+ggplot(body_well, aes(x = bodysat, y = wellbeing)) +
+  geom_point(shape = 21, fill = "deepskyblue4", stroke = .5, size = 3, alpha = .7) +
+  geom_vline(aes(xintercept = mean(bodysat)), size = .3, linetype = "dashed", color = "red") +
+  geom_hline(aes(yintercept = mean(wellbeing)), size = .3, linetype = "dashed", color = "red") +
+  theme_cowplot()
+
+# look at the data
+head(thomason1)
+dplyr::glimpse(thomason1)
+
+plot(x = thomason1$pre, y = thomason1$post)
+
+ggplot(thomason1, aes(x = pre, y = post)) +
+  geom_point(shape = 21, fill = "deepskyblue4", stroke = .5, size = 3, alpha = .7) +
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 20), breaks = seq(0, 20, 2)) +
+  scale_x_continuous(expand = c(0, 0), limits = c(0, 18), breaks = seq(0, 18, 2)) +
+  geom_smooth(method = "lm", se = FALSE) +
+  theme_cowplot()
+
+# calculating Pearson's correlation coefficient
+cor(thomason1$pre, thomason1$post, method = "spearman")
+lsr::correlate(x = thomason1$pre, y = thomason1$post, corr.method = "spearman")
+
+# eyeballing r correlation coefficient
+ggplot(thomason1, aes(x = pre, y = post)) +
+  geom_point(shape = 21, fill = "deepskyblue4", stroke = .5, size = 3, alpha = .7) +
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 20), breaks = seq(0, 20, 2)) +
+  scale_x_continuous(expand = c(0, 0), limits = c(0, 18), breaks = seq(0, 18, 2)) +
+  geom_vline(aes(xintercept = mean(pre)), size = .3, linetype = "dashed", color = "red") +
+  geom_hline(aes(yintercept = mean(post)), size = .3, linetype = "dashed", color = "red") +
+  theme_cowplot()
+
+# look at the data
+head(sleep_beauty)
+dplyr::glimpse(sleep_beauty)
+
+# eyeballing r correlation coefficient
+ggplot(sleep_beauty, aes(x = nightly_sleep_hours, y = rated_attractiveness)) +
+  geom_point(shape = 21, fill = "deepskyblue4", stroke = .5, size = 3, alpha = .7) +
+  geom_smooth(method = "lm", se = FALSE) +
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 8), breaks = seq(0, 8, 1)) +
+  scale_x_continuous(expand = c(0, 0), limits = c(0, 14), breaks = seq(0, 14, 1)) +
+  geom_vline(aes(xintercept = mean(nightly_sleep_hours)), size = .3, linetype = "dashed", color = "red") +
+  geom_hline(aes(yintercept = mean(rated_attractiveness)), size = .3, linetype = "dashed", color = "red") +
+  theme_cowplot()
+
+# calculating CI's for r
+cor.test(x = sleep_beauty$nightly_sleep_hours, y = sleep_beauty$rated_attractiveness)
 ```
 
 ## Handling missing values
