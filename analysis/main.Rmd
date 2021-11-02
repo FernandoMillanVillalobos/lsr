@@ -23,7 +23,7 @@ knit: (function(inputFile, encoding) {
 ---
 
 ```{r, include=FALSE}
-## By defult, show code for all chunks in the knitted document,
+## By default, show code for all chunks in the knitted document,
 ## as well as the output. To override for a particular chunk
 ## use echo = FALSE in its options.
 knitr::opts_chunk$set(
@@ -38,7 +38,7 @@ user_name <- "fernandomillanvillalobos" # your Git username (only needed if
 project_name <- "rddj-template" # adapt!
 package_date <- "2021-01-01" # date of the CRAN snapshot that
 # the checkpoint package uses
-r_version <- "4.1.0" # R-Version to use
+r_version <- "4.1.1" # R-Version to use
 options(Ncpus = 4) # use 4 cores for parallelized installation of packages
 if (r_version != paste0(version$major, ".", version$minor)) {
   stop("ERROR: specified R version does not match currently used.")
@@ -147,7 +147,6 @@ library(tidyverse, warn.conflicts = FALSE) # ggplot2, dplyr, tidyr, readr, purrr
 library(scales) # scales for ggplot2
 library(jsonlite) # json
 library(lintr) # code linting
-library(sf) # spatial data handling
 library(rmarkdown)
 library(data.table)
 library(cowplot) # theme
@@ -158,11 +157,14 @@ library(ggrepel) # text labels
 library(skimr) # data quality
 library(lsr) # book package
 library(vcd)
+library(vcdExtra)
 library(sciplot)
 library(gplots)
 library(car) # statistics tests 
 library(lmtest) # more statistics tests
-library(itns) # book itns 
+library(itns) # book itns
+library(effects)
+library(BayesFactor)
 library(janitor)", # names
   file = "manifest.R"
 )
@@ -370,7 +372,7 @@ i <- IQR(afl.margins)
 cat("IQR is", i, "\n")
 
 # calculate the mean absolute deviation (AAD)
-a <- aad(afl.margins[1:5])
+a <- lsr::aad(afl.margins[1:5])
 cat("The mean absolute deviation (AAD) is", a, "\n")
 
 # calculate variance (also called mean square deviation)
@@ -386,11 +388,11 @@ m <- mad(afl.margins, constant = 1)
 cat("The median absolute deviation (MAD) is", m, "\n")
 
 # calculate skewness
-sk <- skew(afl.margins)
+sk <- psych::skew(afl.margins)
 cat("The skewness is", sk, "\n")
 
 # calculate kurtosis
-k <- kurtosi(afl.margins)
+k <- psych::kurtosi(afl.margins)
 cat("The kurtosis is", k, "\n")
 ```
 
@@ -407,10 +409,10 @@ summary(afl.margins)
 summary(afl.finalists)
 
 # for data frames
-describe(x = clin.trial)
+psych::describe(x = clin.trial)
 
 # broken down by grouping variable
-describeBy(clin.trial, group = clin.trial$therapy)
+psych::describeBy(clin.trial, group = clin.trial$therapy)
 by(clin.trial, INDICES = clin.trial$therapy, FUN = describe)
 by(clin.trial, INDICES = clin.trial$therapy, FUN = summary)
 aggregate(mood.gain ~ drug + therapy, data = clin.trial, FUN = mean)
@@ -567,7 +569,7 @@ speech.by.char <- split(utterance, speaker)
 speech.by.char
 
 # pull grouping variables out of the list and into workspace
-importList(speech.by.char, ask = FALSE)
+lsr::importList(speech.by.char, ask = FALSE)
 
 # using subset
 df <- subset(itng, subset = speaker == "makka-pakka", select = utterance)
@@ -580,10 +582,10 @@ df <- subset(itng, subset = speaker == "makka-pakka", select = utterance)
 load("~/lsr/lsr/analysis/input/nightgarden2.Rdata")
 
 # sorting a data frame
-sortFrame(garden, speaker, line)
+lsr::sortFrame(garden, speaker, line)
 
 # reverse order
-sortFrame(garden, -speaker, line)
+lsr::sortFrame(garden, -speaker, line)
 ```
 
 ## Working with text
@@ -778,12 +780,12 @@ qt(p = .975, df = 10 - 1) # small sample
 # calculating CI
 # load data
 load("~/lsr/lsr/analysis/input/afl24.Rdata")
-ciMean(x = afl$attendance) # 95% CI (default)
-ciMean(x = afl$attendance, conf = .99) # 99% CI (default)
+lsr::ciMean(x = afl$attendance) # 95% CI (default)
+lsr::ciMean(x = afl$attendance, conf = .99) # 99% CI (default)
 
 # plotting CI
 # using bargraph
-bargraph.CI(
+sciplot::bargraph.CI(
   x.factor = year, # grouping variable
   response = attendance, # outcome variable
   data = afl, # data
@@ -793,7 +795,7 @@ bargraph.CI(
 )
 
 # using lineplot
-lineplot.CI(
+sciplot::lineplot.CI(
   x.factor = year, # grouping variable
   response = attendance, # outcome variable
   data = afl, # data
@@ -803,7 +805,7 @@ lineplot.CI(
 )
 
 # using plotmeans
-plotmeans(
+gplots::plotmeans(
   formula = attendance ~ year,
   data = afl,
   n.label = FALSE
@@ -852,11 +854,11 @@ pchisq(q = 8.44, df = 3, lower.tail = F)
 1 - pchisq(q = 8.44, df = 3)
 
 # all above calculations all at once
-goodnessOfFitTest(cards$choice_1)
+lsr::goodnessOfFitTest(cards$choice_1)
 
 # specifying a different null hypothesis
 nullProbs <- c(clubs = .2, diamonds = .3, hearts = .3, spades = .2)
-goodnessOfFitTest(cards$choice_1, p = nullProbs)
+lsr::goodnessOfFitTest(cards$choice_1, p = nullProbs)
 
 # using chisq.test() for the goodness of fit test -> frequency table (observed)
 chisq.test(observed)
@@ -870,7 +872,7 @@ chapekFrequencies
 chapekFrequenciesSum <- addmargins(chapekFrequencies, margin = c(1, 2), FUN = sum, quiet = T)
 
 # running the test
-associationTest(formula = ~ choice + species, data = chapek9)
+lsr::associationTest(formula = ~ choice + species, data = chapek9)
 
 # using chisq.test() for a test of independence (assocition) -> cross-tabulation table (chapekFrequencies)
 chisq.test(chapekFrequencies)
@@ -946,12 +948,12 @@ p.value
 
 ```{r t-test}
 # running one-sample t-test (two sided test)
-oneSampleTTest(x = grades, mu = 67.5)
+lsr::oneSampleTTest(x = grades, mu = 67.5)
 
 # one sided test
-oneSampleTTest(x = grades, mu = 67.5, one.sided = "greater")
+lsr::oneSampleTTest(x = grades, mu = 67.5, one.sided = "greater")
 # or
-oneSampleTTest(x = grades, mu = 67.5, one.sided = "less")
+lsr::oneSampleTTest(x = grades, mu = 67.5, one.sided = "less")
 
 # using t-test function
 t.test(x = grades, mu = 67.5)
@@ -1015,10 +1017,10 @@ harpoMeans <- function() {
 harpoMeans()
 
 # running the Student's independent samples t-test (two sided test)
-independentSamplesTTest(formula = grade ~ tutor, data = harpo, var.equal = T)
+lsr::independentSamplesTTest(formula = grade ~ tutor, data = harpo, var.equal = T)
 
 # running the Welch's independent samples t-test (two sided test)
-independentSamplesTTest(formula = grade ~ tutor, data = harpo) # not equal variances assumed
+lsr::independentSamplesTTest(formula = grade ~ tutor, data = harpo) # not equal variances assumed
 
 # using t.test function (Welch's test)
 t.test(formula = grade ~ tutor, data = harpo)
@@ -1026,9 +1028,9 @@ t.test(formula = grade ~ tutor, data = harpo)
 t.test(formula = grade ~ tutor, data = harpo, var.equal = T)
 
 # one sided test
-independentSamplesTTest(formula = grade ~ tutor, data = harpo, one.sided = "Anastasia")
+lsr::independentSamplesTTest(formula = grade ~ tutor, data = harpo, one.sided = "Anastasia")
 # or
-independentSamplesTTest(formula = grade ~ tutor, data = harpo, one.sided = "Bernadette")
+lsr::independentSamplesTTest(formula = grade ~ tutor, data = harpo, one.sided = "Bernadette")
 ```
 ### The paired-samples t-test
 
@@ -1037,7 +1039,7 @@ independentSamplesTTest(formula = grade ~ tutor, data = harpo, one.sided = "Bern
 load("~/lsr/lsr/analysis/input/chico.Rdata")
 chico
 
-describe(chico)
+psych::describe(chico)
 # create a "difference" variable
 chico$improvement <- chico$grade_test2 - chico$grade_test1
 chico
@@ -1047,14 +1049,14 @@ chico
 # Option 1:
 # a. create a "difference" variable (chico$improvement)
 # b. run a one sample t-test on it
-oneSampleTTest(chico$improvement, mu = 0)
+lsr::oneSampleTTest(chico$improvement, mu = 0)
 
 # Option 2:
 # using the pairedSamplesTTest function from lsr package (one sided formula) (two sided test)
-pairedSamplesTTest(formula = ~ grade_test2 + grade_test1, data = chico)
+lsr::pairedSamplesTTest(formula = ~ grade_test2 + grade_test1, data = chico)
 #
 # one sided test
-pairedSamplesTTest(formula = ~ grade_test2 + grade_test1, data = chico, one.sided = "grade_test2")
+lsr::pairedSamplesTTest(formula = ~ grade_test2 + grade_test1, data = chico, one.sided = "grade_test2")
 
 # running a paired samples t-test from long form data
 # first, format df from wide to long
@@ -1063,31 +1065,31 @@ chico2
 
 # second, using the pairedSamplesTTest (two sided formula)
 # Option 1 (two sided test)
-pairedSamplesTTest(formula = grade ~ time, data = chico2, id = "id")
+lsr::pairedSamplesTTest(formula = grade ~ time, data = chico2, id = "id")
 
 # one sided test
-pairedSamplesTTest(formula = grade ~ time, data = chico2, id = "id", one.sided = "test2")
+lsr::pairedSamplesTTest(formula = grade ~ time, data = chico2, id = "id", one.sided = "test2")
 
 # Option 2
-pairedSamplesTTest(formula = grade ~ time + (id), data = chico2)
+lsr::pairedSamplesTTest(formula = grade ~ time + (id), data = chico2)
 
 # using t.test function
 t.test(x = chico$grade_test2, y = chico$grade_test1, paired = T) # the first element of x and y must correspond to the same person
 
 # one sided test
-pairedSamplesTTest(formula = grade ~ time + (id), data = chico2, one.sided = "test2")
+lsr::pairedSamplesTTest(formula = grade ~ time + (id), data = chico2, one.sided = "test2")
 ```
 ### Effect size
 
 ```{r effect_size}
 # Cohen's d from one sample
-cohensD(x = grades, mu = 67.5)
+lsr::cohensD(x = grades, mu = 67.5)
 
 # Cohen's d from a Student t-test
-cohensD(formula = grade ~ tutor, data = harpo, method = "pooled")
+lsr::cohensD(formula = grade ~ tutor, data = harpo, method = "pooled")
 
 # Cohen's d from a Welch t-test
-cohensD(formula = grade ~ tutor, data = harpo, method = "unequal")
+lsr::cohensD(formula = grade ~ tutor, data = harpo, method = "unequal")
 ```
 
 ### Checking the normality of a sample
@@ -1100,7 +1102,7 @@ normal.data <- rnorm(n = 100)
 hist(x = normal.data)
 qqnorm(y = normal.data)
 
-# running a Whapiro-Wilk test
+# running a Shapiro-Wilk test
 shapiro.test(x = normal.data)
 ```
 ### Testing non-normal data with Wilcoxon tests
@@ -1128,7 +1130,7 @@ wilcox.test(x = happiness$after, y = happiness$before, paired = T)
 
 ## Comparing several means (one-way ANOVA)
 
-```{r one-way-anova}
+```{r one-way_anova}
 # load data
 load("~/lsr/lsr/analysis/input/clinicaltrial.Rdata")
 clin.trial
@@ -1139,16 +1141,16 @@ xtabs(~drug, clin.trial)
 
 # calculating means and sd
 mood.gain.mean <- aggregate(mood.gain ~ drug, clin.trial, mean) |>
-rename(mood.gain.mean = mood.gain)
+dplyr::rename(mood.gain.mean = mood.gain)
 
 mood.gain.sd <- aggregate(mood.gain ~ drug, clin.trial, sd) |>
-rename(mood.gain.sd = mood.gain)
+dplyr::rename(mood.gain.sd = mood.gain)
 
 mood.gain.mean
 mood.gain.sd
 
 # plotting the results
-plotmeans(
+gplots::plotmeans(
   formula = mood.gain ~ drug,
   data = clin.trial,
   xlab = "Drug Administered",
@@ -1215,17 +1217,17 @@ etaSquared(x = my.anova)
 # the tidy way
 placebo <- clin.trial |>
 filter(drug == "placebo") |>
-select(mood.gain)
+dplyr::select(mood.gain)
 placebo <- placebo[, 1]
 
 anxifree <- clin.trial |>
 filter(drug == "anxifree") |>
-select(mood.gain)
+dplyr::select(mood.gain)
 anxifree <- anxifree[, 1]
 
 joyzepam <- clin.trial |>
 filter(drug == "joyzepam") |>
-select(mood.gain)
+dplyr::select(mood.gain)
 joyzepam <- joyzepam[, 1]
 
 # the non-tidy way
@@ -1249,27 +1251,27 @@ pairwise.t.test(
   p.adjust.method = "none" # which correction to use
 )
 # or
-posthocPairwiseT(x = my.anova, p.adjust.method = "none") # calling pairwise.t.test using an aov object
+lsr::posthocPairwiseT(x = my.anova, p.adjust.method = "none") # calling pairwise.t.test using an aov object
 
 # corrections for multiple testing
 # Bonferroni corrections
-posthocPairwiseT(my.anova, p.adjust.method = "bonferroni")
+lsr::posthocPairwiseT(my.anova, p.adjust.method = "bonferroni")
 # Holm correction
-posthocPairwiseT(my.anova)
+lsr::posthocPairwiseT(my.anova)
 ```
 
 ### Checking the homogeneity of variance assumption
 
 ```{r checking_homogeneity}
 # running the Levene's test
-leveneTest(y = my.anova, center = mean) # mean
+car::leveneTest(y = my.anova, center = mean) # mean
 # or
-leveneTest(y = mood.gain ~ drug, data = clin.trial) # y is a formula in this case
+car::leveneTest(y = mood.gain ~ drug, data = clin.trial) # y is a formula in this case
 # or
-leveneTest(y = clin.trial$mood.gain, group = clin.trial$drug) # y is the outcome
+car::leveneTest(y = clin.trial$mood.gain, group = clin.trial$drug) # y is the outcome
 
 # running the Brown-Forsythe test (default)
-leveneTest(my.anova) # median
+car::leveneTest(my.anova) # median
 ```
 
 ### Removing the homogeneity of variance assumption
@@ -1331,7 +1333,7 @@ drawBasicScatterplot <- function(dotcol, title) {
 
 drawBasicScatterplot(emphGrey, "")
 
-# potting a depiction of the residuals associated with the best fitting regression line
+# plotting a depiction of the residuals associated with the best fitting regression line
 # good regression line
 drawBasicScatterplot(emphGrey, "Regression Line Close to the Data")
 good.coef <- lm(dan.grump ~ dan.sleep, parenthood)$coef
@@ -1406,7 +1408,7 @@ cor.test(x = parenthood$dan.sleep, y = parenthood$dan.grump)
 confint(object = regression.2, level = .99)
 
 # calculating standardised regression coefficients
-standardCoefs(regression.2)
+lsr::standardCoefs(regression.2)
 ```
 ### Model checking
 
@@ -1429,18 +1431,18 @@ hatvalues(model = regression.2)
 cooks.distance(model = regression.2)
 
 # test from car package to see if any of the Studentised residuals are significantly larger
-outlierTest(model = regression.2)
-
-# getting rid of outliers using subset
-lm(formula = dan.grump ~ dan.sleep + baby.sleep, data = parenthood, subset = -64)
+car::outlierTest(model = regression.2)
 
 # plotting anomalous data using plot()
 plot(x = regression.2, which = 4) # Cook's distance 
 plot(x = regression.2, which = 5) # the Studentised residuals agains leverage
 
 # using the car package
-influenceIndexPlot(model = regression.2)
-influencePlot(model = regression.2)
+car::influenceIndexPlot(model = regression.2)
+car::influencePlot(model = regression.2)
+
+# getting rid of outliers using subset
+lm(formula = dan.grump ~ dan.sleep + baby.sleep, data = parenthood, subset = -64)
 
 # Checking the normality of the residuals
 # plotting histogram
@@ -1448,6 +1450,9 @@ hist(x = residuals(regression.2),
      xlab = "Value of residual",
      main = "",
      breaks = 20)
+
+# running a Shapiro-Wilk test
+shapiro.test(x = residuals(regression.2))
 
 # plotting qq-plot
 plot(x = regression.2, which = 2)
@@ -1463,24 +1468,24 @@ plot(x = yhat.2,
 # plotting the relationship between the the fitted values and the residuals themselves
 plot(x = regression.2, which = 1)
 # with residualPlots() function from car package
-residualPlots(model = regression.2)
+car::residualPlots(model = regression.2)
 
 # Checking the homogeneity of variance
 plot(x = regression.2, which = 3)
 
 # running the non-constant variance test
-ncvTest(regression.2)
+car::ncvTest(regression.2)
 
 # running sandwich estimators if homogeneity of variance is violated
-coeftest(regression.2, vcov. = hccm)
+lmtest::coeftest(regression.2, vcov. = hccm)
 
 # Checking for collinearity
 # calculating the variance inflation factors (VIFs)
-vif(mod = regression.2)
+car::vif(mod = regression.2)
 
 # example of getting collinearity
 regression.3 <- lm(day ~ baby.sleep + dan.sleep + dan.grump, parenthood)
-vif(mod = regression.3)
+car::vif(mod = regression.3)
 ```
 
 ### Model selection
@@ -1508,8 +1513,297 @@ AIC(M0, M1)
 # B. calculating the F statistic
 anova(M0, M1)
 ```
+## Comparing several means with more than one grouping variable (factorial or two-way ANOVA)
+### Factorial ANOVA 1: balanced designs 
 
+```{r factorial-anova}
+# cross-tabulating variables
+xtabs(~ drug + therapy, clin.trial)
 
+# calculating a cross-tabulation of the group means for all possible combinations
+# for factor drug
+aggregate(mood.gain ~ drug, clin.trial, mean)
+# for factor therapy
+aggregate(mood.gain ~ therapy, clin.trial, mean)
+# for both
+total_means <- aggregate(mood.gain ~ drug + therapy, clin.trial, mean)
+# for none (the mean)
+mean(clin.trial$mood.gain)
+
+# running aov using only a single factor
+model.1 <- aov(mood.gain ~ drug, clin.trial)
+summary(model.1)
+
+# running aov using two grouping factors
+model.2 <- aov(mood.gain ~ drug + therapy, clin.trial)
+summary(model.2)
+
+# plotting to check interaction
+sciplot::lineplot.CI(x.factor = clin.trial$drug,
+            response = clin.trial$mood.gain,
+            group = clin.trial$therapy,
+            ci.fun = ciMean,
+            xlab = "drug",
+            ylab = "mood gain")
+
+# running factorial ANOVA with interaction
+model.3 <- aov(mood.gain ~ drug * therapy, clin.trial)
+# or
+# model.3 <- aov(mood.gain ~ drug + therapy + drug:therapy, clin.trial)
+summary(model.3)
+
+# calculating effect size
+lsr::etaSquared(model.2)
+
+# calculating effect size with interaction
+lsr::etaSquared(model.3)
+
+# calculating estimates of all group means
+eff <- effects::effect(term = "drug*therapy", mod = model.3)
+eff
+
+# extracting confidence intervals
+summary(eff)
+
+# no interaction
+eff2 <- effects::effect(term = "drug*therapy", mod = model.2)
+eff2
+summary(eff2)
+```
+
+#### Assumption checking
+
+```{r assumpiton-checking}
+# Levene test for homogeneity of variance
+car::leveneTest(mood.gain ~ drug * therapy, clin.trial)
+
+# testing the normality of the residuals
+# 1. extracting the residuals
+resid <- residuals(model.2)
+
+# 2. plotting the residuals
+hist(resid)
+qqnorm(resid)
+
+# 3. running the Shapiro-Wilk test
+shapiro.test(resid)
+
+# running F-test for model comparison
+anova(model.1, model.3)
+```
+#### ANOVA as linear model
+
+```{r anova-as-linear}
+# load data
+load("~/lsr/lsr/analysis/input/rtfm.Rdata")
+rtfm.1
+rtfm.2
+
+# running an ANOVA analysis
+anova.model <- aov(grade ~ attend + reading, data = rtfm.2)
+summary(anova.model)
+
+# taking notes of F statistics (the observed group means)
+effects::Effect(c("attend", "reading"), anova.model)
+
+# running a regression
+regression.model <- lm(grade ~ attend + reading, data = rtfm.1)
+coef(summary(regression.model))
+
+# running ANOVA function to a regression model
+anova(regression.model)
+
+# encoding non binary factors as contrasts
+clin.trial$druganxifree <- as.numeric(clin.trial$drug == "anxifree")
+clin.trial$drugjoyzepam <- as.numeric(clin.trial$drug == "joyzepam")
+# or using the expandFactors() function
+clin.trial2 <- lsr::expandFactors(clin.trial)
+
+# running the ANOVA model in a three-level factor data frame
+drug.model <- aov(mood.gain ~ drug + therapy, data = clin.trial)
+summary(drug.model)
+
+# running a regression model in a two binary contrasts data frame
+drug.regression <- lm(mood.gain ~ druganxifree + drugjoyzepam + therapyCBT, data = clin.trial2)
+summary(drug.regression)
+
+# running the F-test
+nodrug.regression <- lm(mood.gain ~ therapyCBT, data = clin.trial2)
+anova(nodrug.regression, drug.regression)
+
+# running a regression model in a three-level factor data frame
+drug.lm <- lm(mood.gain ~ drug + therapy, data = clin.trial)
+summary(drug.lm)
+
+# using anova() gives us an ANOVA table
+anova(drug.lm)
+
+# creating treatment contrasts
+contr.treatment(n = 5)
+
+# last category treated as the baseline
+contr.SAS(n = 5)
+# or
+contr.treatment(n = 5, base = 5)
+
+# creating a contrast matrix with Helmert contrasts
+contr.helmert(n = 5)
+
+# creating "sum to zero" matrix
+contr.sum( n = 5)
+
+# checking contrasts matrix for a df
+attr(clin.trial$drug, "contrasts")
+contrasts(clin.trial$drug) # per default: contr.treatment()
+
+# setting the contrasts for a single factor
+contrasts(clin.trial$drug) <- contr.sum(n = 3)
+contrasts(clin.trial$drug)
+contrasts(clin.trial$drug) <- NULL # revert the defaults
+contrasts(clin.trial$drug)
+
+# setting the contrasts for a single analysis
+# 1. creating a list with the contrasts types
+my.contrasts <- list(drug = contr.helmert, therapy = contr.helmert)
+
+# 2. fitting the ANOVA model with the contrasts argument specified
+mod <- aov(mood.gain ~ drug * therapy, clin.trial, contrasts = my.contrasts)
+
+# 3. checking
+mod$contrasts
+```
+#### Post hoc tests
+
+```{r post-hoc-tests}
+# running Tukey's HSD
+TukeyHSD(model.2)
+
+# with interactions
+TukeyHSD(model.3)
+```
+### Factorial ANOVA 2: unbalanced designs
+
+```{r unbalanced-designs}
+# load data
+load("~/lsr/lsr/analysis/input/coffee.Rdata")
+
+# calculating means between different groups
+aggregate(babble ~ milk + sugar, data = coffee, FUN = mean)
+
+# calculating sd between different groups
+aggregate(babble ~ milk + sugar, data = coffee, FUN = sd)
+
+# checking how many observations in each group
+xtabs(~ milk + sugar, data = coffee)
+
+# running Type I sum of squares
+mod.type1 <- lm(babble ~ sugar + milk + sugar:milk, data = coffee)
+anova(mod.type1)
+# or
+mod.1 <- lm(babble ~ 1, data = coffee)
+mod.2 <- lm(babble ~ sugar, data = coffee)
+mod.3 <- lm(babble ~ sugar + milk, data = coffee)
+mod.4 <- lm(babble ~ sugar + milk + sugar:milk, data = coffee)
+anova(mod.1, mod.2, mod.3, mod.4)
+
+# the order matters
+mod_order <- lm(babble ~ milk + sugar + sugar:milk, data = coffee)
+anova(mod_order)
+
+# running Type III sum of squares (default contrasts = treatment contrasts)
+mod.type3 <- lm(babble ~ sugar * milk, data = coffee)
+car::Anova(mod.type3, type = 3)
+
+# changing the contrasts
+my.contrasts.type3 <- list(milk = "contr.Helmert", sugar = "contr.Helmert")
+mod.H <- lm(babble ~ sugar * milk, data = coffee, contrasts = my.contrasts.type3)
+car::Anova(mod.H, type = 3)
+
+# running Type II sum of squares
+mod.type2 <- lm(babble ~ sugar * milk, data = coffee)
+car::Anova(mod.type2, type = 2)
+
+# calculating eta squares and partial eta squares for unbalanced designs and for different Types of tests
+es <- lsr::etaSquared(mod.type1, type = 2, anova = TRUE)
+es
+```
+## Bayesian statistics
+
+### Bayesian analysis of contingency tables
+
+```{r bayesian-statistics}
+# load data
+load("~/lsr/lsr/analysis/input/chapek9.Rdata")
+
+# running cross-tabulation
+crosstab <- xtabs(~ species + choice, data = chapek9)
+crosstab
+
+# running a chi-square test of association
+lsr::associationTest(~ species + choice, data = chapek9)
+
+# running the analysis of the contingency table the Bayesian way (joint multinomial sampling)
+BayesFactor::contingencyTableBF(crosstab, sampleType = "jointMulti")
+
+# with Poisson sampling plan
+BayesFactor::contingencyTableBF(crosstab, sampleType = "poisson")
+
+# with independent multinomial plan
+BayesFactor::contingencyTableBF(crosstab, sampleType = "indepMulti", fixedMargin = "rows")
+
+# with experimental design plan (just for small contingency tables = 2X2)
+# BayesFactor::contingencyTableBF(crosstab, sampleType = "hypergeom")
+```
+
+### Bayesian t-tests
+
+#### Independent samples t-test 
+
+```{r bayesian-t-tests-independent}
+# running an independent samples t-test
+lsr::independentSamplesTTest(formula = grade ~ tutor, data = harpo, var.equal = TRUE)
+
+# running an independent samples t-test the Bayesian way
+BayesFactor::ttestBF(formula = grade ~ tutor, data = harpo)
+```
+#### Paired samples t-test
+
+```{r bayesian-t-tests-independent}
+# running an paired samples t-test the Bayesian way
+BayesFactor::ttestBF(x = chico$grade_test1, y = chico$grade_test2, paired = TRUE)
+```
+### Bayesian regression
+
+```{r bayesian-regression}
+# running regression the Bayesian way
+BayesFactor::regressionBF(formula = dan.grump ~ dan.sleep + day + baby.sleep, data = parenthood)
+
+# narrowing the models
+models <- BayesFactor::regressionBF(formula = dan.grump ~ dan.sleep + day + baby.sleep, data = parenthood)
+head(models, n = 3)
+
+# knowing the difference between best models
+head(models / max(models), n = 3)
+
+# calculating the difference between the two best models (row 1 / row 4 in the original output)
+models[1] / models[4]
+
+# specifying a preferred model
+BayesFactor::regressionBF(formula = dan.grump ~ dan.sleep + baby.sleep, data = parenthood, whichModels = "top")
+```
+### Bayesian ANOVA
+
+```{r bayesian-anova}
+# running ANOVA the Bayesian way
+modelsANOVA <- anovaBF(formula = mood.gain ~ drug * therapy, data = clin.trial)
+modelsANOVA
+
+# identifying the best model
+modelsANOVA / max(modelsANOVA)
+
+# getting BF for a Type II ANOVA
+max(modelsANOVA) / modelsANOVA
+```
 # Linting
 
 The code in this RMarkdown is linted with the [lintr package](https://github.com/jimhester/lintr), which is based on the [tidyverse style guide](http://style.tidyverse.org/).
