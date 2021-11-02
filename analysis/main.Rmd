@@ -1768,7 +1768,7 @@ BayesFactor::ttestBF(formula = grade ~ tutor, data = harpo)
 ```
 #### Paired samples t-test
 
-```{r bayesian-t-tests-independent}
+```{r bayesian-t-tests-paired}
 # running an paired samples t-test the Bayesian way
 BayesFactor::ttestBF(x = chico$grade_test1, y = chico$grade_test2, paired = TRUE)
 ```
