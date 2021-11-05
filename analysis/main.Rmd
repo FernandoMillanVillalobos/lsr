@@ -38,7 +38,7 @@ user_name <- "fernandomillanvillalobos" # your Git username (only needed if
 project_name <- "rddj-template" # adapt!
 package_date <- "2021-01-01" # date of the CRAN snapshot that
 # the checkpoint package uses
-r_version <- "4.1.1" # R-Version to use
+r_version <- "4.1.2" # R-Version to use
 options(Ncpus = 4) # use 4 cores for parallelized installation of packages
 if (r_version != paste0(version$major, ".", version$minor)) {
   stop("ERROR: specified R version does not match currently used.")
@@ -154,7 +154,7 @@ library(extrafont)
 library(waldo) # compare
 library(psych) # some useful funs 
 library(ggrepel) # text labels
-library(skimr) # data quality
+
 library(lsr) # book package
 library(vcd)
 library(vcdExtra)
@@ -168,6 +168,7 @@ library(BayesFactor)
 library(janitor)", # names
   file = "manifest.R"
 )
+# library(skimr) # data quality
 ```
 
 ## Install packages
