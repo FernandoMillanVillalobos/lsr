@@ -154,7 +154,7 @@ library(extrafont)
 library(waldo) # compare
 library(psych) # some useful funs 
 library(ggrepel) # text labels
-
+library(skimr)
 library(lsr) # book package
 library(vcd)
 library(vcdExtra)
@@ -168,7 +168,6 @@ library(BayesFactor)
 library(janitor)", # names
   file = "manifest.R"
 )
-# library(skimr) # data quality
 ```
 
 ## Install packages
