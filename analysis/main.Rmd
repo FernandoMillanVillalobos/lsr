@@ -35,7 +35,7 @@ knitr::opts_chunk$set(
 # CONFIG
 user_name <- "fernandomillanvillalobos" # your Git username (only needed if
 # you want to deploy to GH pages)
-project_name <- "rddj-template" # adapt!
+project_name <- "lsr" # adapt!
 package_date <- "2021-01-01" # date of the CRAN snapshot that
 # the checkpoint package uses
 r_version <- "4.1.2" # R-Version to use
@@ -162,12 +162,13 @@ library(sciplot)
 library(gplots)
 library(car) # statistics tests 
 library(lmtest) # more statistics tests
-library(itns) # book itns
+
 library(effects)
 library(BayesFactor)
 library(janitor)", # names
   file = "manifest.R"
 )
+# library(itns) # book itns
 ```
 
 ## Install packages
