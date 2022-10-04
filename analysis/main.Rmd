@@ -36,9 +36,9 @@ knitr::opts_chunk$set(
 user_name <- "fernandomillanvillalobos" # your Git username (only needed if
 # you want to deploy to GH pages)
 project_name <- "lsr" # adapt!
-package_date <- "2021-01-01" # date of the CRAN snapshot that
+package_date <- "2022-01-10" # date of the CRAN snapshot that
 # the checkpoint package uses
-r_version <- "4.1.2" # R-Version to use
+r_version <- "4.2.1" # R-Version to use
 options(Ncpus = 4) # use 4 cores for parallelized installation of packages
 if (r_version != paste0(version$major, ".", version$minor)) {
   stop("ERROR: specified R version does not match currently used.")
@@ -143,32 +143,31 @@ if (Sys.getenv("RSTUDIO") == "1") {
 # tidyverse: see https://blog.rstudio.org/2016/09/15/tidyverse-1-0-0/
 cat("
 library(rstudioapi)
-library(tidyverse, warn.conflicts = FALSE) # ggplot2, dplyr, tidyr, readr, purrr, tibble, magrittr, readxl
-library(scales) # scales for ggplot2
-library(jsonlite) # json
-library(lintr) # code linting
+library(tidyverse)
+library(scales)
+library(jsonlite)
+library(lintr)
 library(rmarkdown)
 library(data.table)
-library(cowplot) # theme
+library(cowplot)
 library(extrafont)
-library(waldo) # compare
-library(psych) # some useful funs 
-library(ggrepel) # text labels
+library(waldo)
+library(psych)
+library(ggrepel)
 library(skimr)
-library(lsr) # book package
+library(lsr)
 library(vcd)
 library(vcdExtra)
 library(sciplot)
 library(gplots)
-library(car) # statistics tests 
-library(lmtest) # more statistics tests
-
+library(car)
+library(lmtest)
 library(effects)
 library(BayesFactor)
-library(janitor)", # names
-  file = "manifest.R"
+library(itns)
+library(janitor)",
+file = "manifest.R"
 )
-# library(itns) # book itns
 ```
 
 ## Install packages
@@ -349,7 +348,7 @@ by(age, INDICES = gender, FUN = mean) # does the same as tapply
 
 ```{r central_tendency}
 # Load data
-load("~/lsr/lsr/analysis/input/aflsmall.Rdata")
+load("input/aflsmall.Rdata")
 table(afl.finalists)
 
 # calculate the mode
@@ -401,7 +400,7 @@ cat("The kurtosis is", k, "\n")
 
 ```{r data_summary}
 # load data
-load("~/lsr/lsr/analysis/input/clinicaltrial.Rdata")
+load("input/clinicaltrial.Rdata")
 
 # for numeric variables
 summary(afl.margins)
@@ -423,7 +422,7 @@ aggregate(mood.gain ~ drug + therapy, data = clin.trial, FUN = mean)
 
 ```{r correlations}
 # load data
-load("~/lsr/lsr/analysis/input/parenthood.Rdata")
+load("input/parenthood.Rdata")
 
 hist(parenthood$dan.grump)
 hist(parenthood$dan.sleep)
@@ -437,7 +436,7 @@ cor(x = parenthood$dan.sleep, y = parenthood$dan.grump)
 cor(parenthood)
 
 # load data
-load("~/lsr/lsr/analysis/input/effort.Rdata")
+load("input/effort.Rdata")
 
 # calculate correlations (the Spearmans's correlation)
 hours_rank <- rank(effort$hours)
@@ -448,7 +447,7 @@ cor(effort$hours, effort$grade, method = "spearman")
 
 # calculate correlations getting rid of all non-numeric variables
 # # load data
-load("~/lsr/lsr/analysis/input/work.Rdata")
+load("input/work.Rdata")
 
 lsr::correlate(work)
 lsr::correlate(work, corr.method = "spearman")
@@ -524,7 +523,7 @@ cor.test(x = sleep_beauty$nightly_sleep_hours, y = sleep_beauty$rated_attractive
 
 ```{r correlations_missing}
 # load data
-load("~/lsr/lsr/analysis/input/parenthood2.Rdata")
+load("input/parenthood2.Rdata")
 
 # ignore all cases that have any missing values
 cor(parenthood2, use = "complete.obs")
@@ -537,7 +536,7 @@ cor(parenthood2, use = "pairwise.complete.obs")
 
 ```{r transforming}
 # load data
-load("~/lsr/lsr/analysis/input/likert.Rdata")
+load("input/likert.Rdata")
 
 # make a data frame
 df <- data.frame(likert.raw)
@@ -561,7 +560,7 @@ age.df <- data.frame(age, age.group)
 
 ```{r subsetting}
 # load data
-load("~/lsr/lsr/analysis/input/nightgarden.Rdata")
+load("input/nightgarden.Rdata")
 itng <- data.frame(speaker, utterance)
 
 
@@ -580,7 +579,7 @@ df <- subset(itng, subset = speaker == "makka-pakka", select = utterance)
 
 ```{r sorting-flipping-mergin}
 # load data
-load("~/lsr/lsr/analysis/input/nightgarden2.Rdata")
+load("input/nightgarden2.Rdata")
 
 # sorting a data frame
 lsr::sortFrame(garden, speaker, line)
@@ -780,7 +779,7 @@ qt(p = .975, df = 10 - 1) # small sample
 
 # calculating CI
 # load data
-load("~/lsr/lsr/analysis/input/afl24.Rdata")
+load("input/afl24.Rdata")
 lsr::ciMean(x = afl$attendance) # 95% CI (default)
 lsr::ciMean(x = afl$attendance, conf = .99) # 99% CI (default)
 
@@ -910,7 +909,7 @@ mcnemar.test(cardChoices)
 
 ```{r z-test}
 # Load data
-load("~/lsr/lsr/analysis/input/zeppo.Rdata")
+load("input/zeppo.Rdata")
 grades
 
 # Calculating z-test
@@ -964,7 +963,7 @@ t.test(x = grades, mu = 67.5)
 
 ```{r indep-t-test}
 # Load the data
-load("~/lsr/lsr/analysis/input/harpo.Rdata")
+load("input/harpo.Rdata")
 harpo
 
 # Parameters for plots
@@ -1037,7 +1036,7 @@ lsr::independentSamplesTTest(formula = grade ~ tutor, data = harpo, one.sided = 
 
 ```{r paired-samples}
 # load data
-load("~/lsr/lsr/analysis/input/chico.Rdata")
+load("input/chico.Rdata")
 chico
 
 psych::describe(chico)
@@ -1110,9 +1109,9 @@ shapiro.test(x = normal.data)
 
 ```{r wilcoxon_tests}
 # load data
-load("~/lsr/lsr/analysis/input/awesome.Rdata")
-load("~/lsr/lsr/analysis/input/awesome2.Rdata")
-load("~/lsr/lsr/analysis/input/happy.Rdata")
+load("input/awesome.Rdata")
+load("input/awesome2.Rdata")
+load("input/happy.Rdata")
 awesome
 score.A
 score.B
@@ -1133,7 +1132,7 @@ wilcox.test(x = happiness$after, y = happiness$before, paired = T)
 
 ```{r one-way_anova}
 # load data
-load("~/lsr/lsr/analysis/input/clinicaltrial.Rdata")
+load("input/clinicaltrial.Rdata")
 clin.trial
 
 # descriptive statistics
@@ -1596,7 +1595,7 @@ anova(model.1, model.3)
 
 ```{r anova-as-linear}
 # load data
-load("~/lsr/lsr/analysis/input/rtfm.Rdata")
+load("input/rtfm.Rdata")
 rtfm.1
 rtfm.2
 
@@ -1686,7 +1685,7 @@ TukeyHSD(model.3)
 
 ```{r unbalanced-designs}
 # load data
-load("~/lsr/lsr/analysis/input/coffee.Rdata")
+load("input/coffee.Rdata")
 
 # calculating means between different groups
 aggregate(babble ~ milk + sugar, data = coffee, FUN = mean)
@@ -1734,7 +1733,7 @@ es
 
 ```{r bayesian-statistics}
 # load data
-load("~/lsr/lsr/analysis/input/chapek9.Rdata")
+load("input/chapek9.Rdata")
 
 # running cross-tabulation
 crosstab <- xtabs(~ species + choice, data = chapek9)
